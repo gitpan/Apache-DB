@@ -5,7 +5,7 @@ use vars qw($VERSION @ISA);
 use Apache::DB 0.06;
 @ISA = qw(DB);
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 $Apache::Registry::MarkLine = 0;
 
@@ -15,7 +15,8 @@ BEGIN {
 
 	if (MP2) { 
 		require Apache2; 
-		require APR::Pool; 
+		require Apache::RequestUtil;
+		require Apache::RequestRec;
 	}
 }
 

@@ -1,3 +1,8 @@
+=item 0.09 - May 11, 2004
+
+Fix required module problems in Apache::SmallProf, thanks to 
+Jens Gassmann <jens.gassmann@atomix.de> for spotting the problem.
+
 =item 0.08 - April 14, 2004
 
 Increment version to fix PAUSE upload problem. 
