@@ -5,6 +5,7 @@
 static void
 init_debugger()
 {
+    dTHR;
     PL_curstash = PL_debstash;
     PL_dbargs = 
 	GvAV(gv_AVadd((gv_fetchpv("DB::args", GV_ADDMULTI, SVt_PVAV))));
@@ -31,12 +32,6 @@ PROTOTYPES: DISABLE
 BOOT:
     ApacheSIGINT = rsignal_state(whichsig("INT"));
 
-void
-ApacheSIGINT(...)
-
-    CODE:
-    if (ApacheSIGINT) (*ApacheSIGINT)(SIGINT);
-
 int
 init_debugger()
 
@@ -51,3 +46,11 @@ init_debugger()
 
     OUTPUT:
     RETVAL
+
+MODULE = Apache::DB            PACKAGE = DB
+
+void
+ApacheSIGINT(...)
+
+    CODE:
+    if (ApacheSIGINT) (*ApacheSIGINT)(SIGINT);

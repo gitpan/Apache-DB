@@ -4,3 +4,6 @@ DB.xs
 MANIFEST
 Makefile.PL
 README
+lib/Apache/DProf.pm
+lib/Apache/SmallProf.pm
+perldb.conf

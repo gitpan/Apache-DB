@@ -7,24 +7,34 @@ use DynaLoader ();
 {
     no strict;
     @ISA = qw(DynaLoader);
-    $VERSION = '0.02';
+    $VERSION = '0.05';
     __PACKAGE__->bootstrap($VERSION);
 }
 
 $Apache::Registry::MarkLine = 0;
 
+sub init {
+    if(init_debugger()) {
+	warn "[notice] Apache::DB initialized in child $$\n";
+    }
+
+    1;
+}
+
 sub handler {
     my $r = shift;
 
-    if(init_debugger()) {
-	warn "[notice] Apache::DB initialize in child $$\n";
-    }
+    init();
 
     require 'Apache/perl5db.pl';
     $DB::single = 1;
 
-    $SIG{INT} = \&DB::catch;
-    $r->register_cleanup(sub { $SIG{INT} = \&ApacheSIGINT; 0 });
+    if (ref $r) {
+	$SIG{INT} = \&DB::catch;
+	$r->register_cleanup(sub { 
+	    $SIG{INT} = \&DB::ApacheSIGINT();
+	});
+    }
 
     return 0;
 }
@@ -52,24 +62,47 @@ Perl ships with a very useful interactive debugger, however, it does not run
 "out-of-the-box" in the Apache/mod_perl environment.  Apache::DB makes a few
 adjustments so the two will cooperate.
 
+=head1 FUNCTIONS
+
+=over 4
+
+=item init
+
+This function initializes the Perl debugger hooks without actually
+starting the interactive debugger.  In order to debug a certain piece
+of code, this function must be called before the code you wish debug
+is compiled.  For example, if you want to insert debugging symbols
+into code that is compiled at server startup, but do not care to debug
+until request time, call this function from a PerlRequire'd file:
+
+ #where db.pl is simply:
+ # use Apache::DB ();
+ # Apache::DB->init;
+ PerlRequire conf/db.pl
+
+ #where modules are loaded
+ PerlRequire conf/init.pl
+
+=item handler
+
+This function will start the interactive debugger.  It will invoke
+I<Apache::DB::init> if needed.  Example configuration:
+
+ <Location /my-handler>
+  PerlFixupHandler Apache::DB
+  SetHandler perl-script
+  PerlHandler My::handler
+ </Location>
+
+=back
+
 =head1 CAVEATS
 
 =over 4
 
-=item first compile
-
-The first step through when a script or module is first compiled may produce
-unexpected results.  It is almost always best to I<continue> the first run
-and step through after the script is compiled.
-
 =item -X
 
 The server must be started with the C<-X> to use Apache::DB.
-
-=item preloading
-
-Module and scripts that are compiled during server startup time will not have
-debugging hooks enabled.
 
 =item filename/line info
 

@@ -31,7 +31,7 @@ sub MY::postamble {
 
 cvs_tag :
 	cvs -d $(CVSROOT) tag v$(VERSION_SYM) .
-	@echo update DB.pm's VERSION now
+	@echo update DB.pm VERSION now
 
 EOF
 }

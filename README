@@ -1,31 +1,8 @@
-NAME
-    Apache::DB - Run the interactive Perl debugger under mod_perl
+This package provides debugging and profiling tools for mod_perl:
 
-SYNOPSIS
-     <Location /perl>
-      PerlFixupHandler +Apache::DB
+ Apache::DB        - Hooks for the interactive Perl debugger
+ Apache::DProf     - Hooks for Devel::DProf
+ Apache::SmallProf - Hooks for Devel::SmallProf
 
-      SetHandler perl-script
-      PerlHandler +Apache::Registry
-      Options +ExecCGI
-     </Location>
-
-DESCRIPTION
-    Perl ships with a very useful interactive debugger, however, it
-    does not run "out-of-the-box" in the Apache/mod_perl
-    environment. Apache::DB makes a few adjustments so the two will
-    cooperate.
-
-CAVEATS
-    -X  The server must be started with the `-X' to use Apache::DB.
-
-    preloading
-        Module and scripts that are compiled during server startup
-        time will not have debugging hooks enabled.
-
-    filename/line info
-        The filename of Apache::Registry scripts is not displayed.
-
-AUTHOR
-    Doug MacEachern
-
+Enjoy,
+-Doug

@@ -1,3 +1,21 @@
+=item 0.05 - June 6, 1999
+
+included example perldb.conf
+
+included Apache::SmallProf
+
+included Apache::DProf
+
+=item 0.04 - April 14, 1999
+
+added init() function
+
+updated docs
+ 
+=item 0.03 - April 5, 1999
+
+fix for threaded Perl
+
 =item 0.02 - April 1, 1999
 
 first public release
