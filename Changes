@@ -1,3 +1,7 @@
+=item 0.07 - April 7, 2004
+
+Ported Apache::DB to work with mod_perl 2.0 [Frank Wiles <frank@wiles.org>]
+
 =item 0.06 - October 11, 1999
 
 fix APACHE_DPROF_PATH [Balazs Rauznitz <balazs@Commissioner.com>]

@@ -4,10 +4,21 @@ use 5.005;
 use strict;
 use DynaLoader ();
 
+BEGIN { 
+	use constant MP2 => eval { require mod_perl; $mod_perl::VERSION > 1.99 };
+	die "mod_perl is required to run this module: $@" if $@; 
+
+	if(MP2) { 
+		require Apache2;
+		require APR::Pool; 
+	}
+
+}
+
 {
     no strict;
     @ISA = qw(DynaLoader);
-    $VERSION = '0.06';
+    $VERSION = '0.07';
     __PACKAGE__->bootstrap($VERSION);
 }
 
@@ -29,12 +40,22 @@ sub handler {
     require 'Apache/perl5db.pl';
     $DB::single = 1;
 
-    if (ref $r) {
-	$SIG{INT} = \&DB::catch;
-	$r->register_cleanup(sub { 
-	    $SIG{INT} = \&DB::ApacheSIGINT();
-	});
-    }
+	if( MP2 ) { 
+		if (ref $r) {
+		$SIG{INT} = \&DB::catch;
+		$r->pool->cleanup_register(sub { 
+			$SIG{INT} = \&DB::ApacheSIGINT();
+		});
+		}
+	}
+	else {  
+		if (ref $r) {
+		$SIG{INT} = \&DB::catch;
+		$r->register_cleanup(sub { 
+			$SIG{INT} = \&DB::ApacheSIGINT();
+		});
+		}
+	}
 
     return 0;
 }
@@ -82,6 +103,14 @@ until request time, call this function from a PerlRequire'd file:
 
  #where modules are loaded
  PerlRequire conf/init.pl
+
+If you are using mod_perl 2.0 you will need to use the following 
+as your db.pl: 
+
+  use Apache2; 
+  use APR::Pool (); 
+  use Apache::DB (); 
+  Apache::DB->init(); 
 
 =item handler
 

@@ -7,3 +7,4 @@ README
 lib/Apache/DProf.pm
 lib/Apache/SmallProf.pm
 perldb.conf
+META.yml                                 Module meta-data (added by MakeMaker)
