@@ -2,7 +2,6 @@ package Apache::DProf;
 
 use strict;
 use Apache::DB ();
-use Cwd ();
 use File::Path ();
 
 {
@@ -10,22 +9,19 @@ use File::Path ();
     $VERSION = '0.03';
 }
 
+my $prof_path = Apache->server_root_relative($ENV{APACHE_DPROF_PATH} || 
+					     "logs/dprof");
+
 if($ENV{MOD_PERL}) {
-    my $path = Apache->server_root_relative($ENV{DPROF_PATH} || "logs/dprof");
-
-    File::Path::rmtree($path);
-
+    File::Path::rmtree($prof_path) if -d $prof_path and 
+      $ENV{APACHE_DPROF_CLEANUP};
     Apache->push_handlers(PerlChildInitHandler => \&handler);
-}
-
-sub prof_path {
-    shift->server_root_relative("logs/dprof/$$")
 }
 
 sub handler {
     my $r = shift;
-    my $cwd = Cwd::fastcwd();
-    my $dir = prof_path($r);
+
+    my $dir = "$prof_path/$$";
     File::Path::mkpath($dir);
     chdir $dir;
 
@@ -33,21 +29,8 @@ sub handler {
 
     require Devel::DProf;
 
-    chdir $cwd;
+    chdir $Apache::Server::CWD;
 
-    #need mod_perl 1.08+ for push'd ChildExitHandler's to work,
-    #but this isn't required
-    #$r->push_handlers(PerlChildExitHandler => \&exit_handler);
-
-    return 0;
-}
-
-sub exit_handler {
-    my $r = shift;
-    my $dir = prof_path($r);
-    chdir $dir; 
-
-    warn "[notice] Apache::DProf exiting child $$\n";
     return 0;
 }
 

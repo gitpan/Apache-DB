@@ -5,7 +5,7 @@ use vars qw($VERSION @ISA);
 use Apache::DB 0.04;
 @ISA = qw(DB);
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 $Apache::Registry::MarkLine = 0;
 
@@ -59,7 +59,7 @@ sub begin {
     }
     $DB::prevf = '';
     $DB::prevl = 0;
-    my($diff);
+    my($diff,$cdiff);
     my($testDB) = sub {
 	my($pkg,$filename,$line) = caller;
 	$DB::profile || return;
@@ -69,14 +69,20 @@ sub begin {
     # "Null time" compensation code
     $DB::nulltime = 0;
     for (1..100) {
+	my($u,$s,$cu,$cs) = times;
+	$DB::cstart = $u+$s+$cu+$cs;
 	$DB::start = time;
 	&$testDB;
+	($u,$s,$cu,$cs) = times;
+	$DB::cdone = $u+$s+$cu+$cs;
 	$DB::done = time;
 	$diff = $DB::done - $DB::start;
 	$DB::nulltime += $diff;
     }
     $DB::nulltime /= 100;
 
+    my($u,$s,$cu,$cs) = times;
+    $DB::cstart = $u+$s+$cu+$cs;
     $DB::start = time;
 }
 
@@ -84,6 +90,8 @@ sub DB {
     my($pkg,$filename,$line) = caller;
     $DB::profile || return;
     %DB::packages && !$DB::packages{$pkg} && return;
+    my($u,$s,$cu,$cs) = times;
+    $DB::cdone = $u+$s+$cu+$cs;
     $DB::done = time;
 
     # Now save the _< array for later reference.  If we don't do this here, 
@@ -97,8 +105,11 @@ sub DB {
     $delta = ($delta > $DB::nulltime) ? $delta - $DB::nulltime : 0;
     $DB::profiles{$filename}->[$line]++;
     $DB::times{$DB::prevf}->[$DB::prevl] += $delta;
+    $DB::ctimes{$DB::prevf}->[$DB::prevl] += ($DB::cdone - $DB::cstart);
     ($DB::prevf, $DB::prevl) = ($filename, $line);
 
+    ($u,$s,$cu,$cs) = times;
+    $DB::cstart = $u+$s+$cu+$cs;
     $DB::start = time;
 }
 
@@ -125,20 +136,19 @@ sub out_file {
     return "$self->{dir}/$fname.prof";
 }
 
-sub spad {
-    (" " x (10 - length($_[0])))
-}
-
 sub end {
     my $self = shift;
 
     # Get time on last line executed.
+    my($u,$s,$cu,$cs) = times;
+    $DB::cdone = $u+$s+$cu+$cs;
     $DB::done = time;
     my $delta = $DB::done - $DB::start;
     $delta = ($delta > $DB::nulltime) ? $delta - $DB::nulltime : 0;
     $DB::times{$DB::prevf}->[$DB::prevl] += $delta;
+    $DB::ctimes{$DB::prevf}->[$DB::prevl] += ($DB::cdone - $DB::cstart);
 
-    my($i, $stat, $time, $line, $file);
+    my($i, $stat, $time, $ctime, $line, $file);
 
     my %cnt = ();
     foreach $file (sort keys %DB::profiles) {
@@ -153,8 +163,10 @@ sub end {
 		    or !$DB::drop_zeros or next;
 		$time = defined($DB::times{$file}->[$i]) ?
 		    $DB::times{$file}->[$i] : 0;
-		printf OUT "%s%d %.6f%s%d:%s\n", 
-		spad($stat), $stat, $time, spad($i), $i, $line;
+		$ctime = defined($DB::ctimes{$file}->[$i]) ?
+		  $DB::ctimes{$file}->[$i] : 0;
+		printf OUT "%10d %.6f %.6f %10d:%s\n", 
+		$stat, $time, $ctime, $i, $line;
 	    }
 	} 
 	else {
@@ -166,8 +178,10 @@ sub end {
 		     or !$DB::drop_zeros);
 		$time = defined($DB::times{$file}->[$i]) ?
 		    $DB::times{$file}->[$i] : 0;
-		printf OUT "%s%d %.6f%s%d:%s\n", 
-		spad($stat), $stat, $time, spad($i), $i, $line;
+		$ctime = defined($DB::ctimes{$file}->[$i]) ?
+		  $DB::ctimes{$file}->[$i] : 0;
+		printf OUT "%10d %.6f %.6f %10d:%s\n", 
+		$stat, $time, $ctime, $i, $line;
 	    } 
 	}
 	close OUT;
@@ -179,15 +193,13 @@ sub sub {
     local $^W = 0;
 
     goto &$DB::sub unless $DB::profile;
-    $DB::sub{$DB::sub} =~ /(.*):(\d+)-/;
-    $DB::profiles{$1}->[$2]++ if defined $2;
-    $DB::listings{$1} = \@{"main::_<$1"} if defined(@{"main::_<$1"});
-    if(defined &$DB::sub) {
-	&$DB::sub;
+
+    if (defined($DB::sub{$DB::sub})) {
+	my($m,$s) = ($DB::sub{$DB::sub} =~ /.+(?=:)|[^:-]+/g);
+	$DB::profiles{$m}->[$s]++;
+	$DB::listings{$m} = \@{"main::_<$m"} if defined(@{"main::_<$m"});
     }
-    else {
-	warn "can't call `$DB::sub'\n";
-    }
+    goto &$DB::sub;
 }
 
 1;
@@ -234,4 +246,6 @@ Devel::SmallProf(3), Apache::DB(3), Apache::DProf(3)
 
 =head1 AUTHOR
 
-Doug MacEachern
+Devel::SmallProf - Ted Ashton
+Apache::SmallProf derived from Devel::SmallProf - Doug MacEachern
+

@@ -1,3 +1,11 @@
+=item 0.06 - October 11, 1999
+
+fix APACHE_DPROF_PATH [Balazs Rauznitz <balazs@Commissioner.com>]
+
+fix Apache::DB for 5.005_6x+
+
+sync Apache::SmallProf w/ Devel::SmallProf 0.07 (cpu time support)
+
 =item 0.05 - June 6, 1999
 
 included example perldb.conf

@@ -2,8 +2,7 @@
 #include "perl.h"
 #include "XSUB.h"
 
-static void
-init_debugger()
+static void my_init_debugger()
 {
     dTHR;
     PL_curstash = PL_debstash;
@@ -38,7 +37,7 @@ init_debugger()
     CODE:
     if (!PL_perldb) {
 	PL_perldb = PERLDB_ALL;
-	init_debugger();
+	my_init_debugger();
 	RETVAL = TRUE;
     }
     else 
