@@ -18,7 +18,7 @@ BEGIN {
 {
     no strict;
     @ISA = qw(DynaLoader);
-    $VERSION = '0.07';
+    $VERSION = '0.08';
     __PACKAGE__->bootstrap($VERSION);
 }
 
@@ -145,7 +145,9 @@ perldebug(1)
 
 =head1 AUTHOR
 
-Doug MacEachern
+Originally written by Doug MacEachern
+
+Currently maintained by Frank Wiles <frank@wiles.org>
 
 
 

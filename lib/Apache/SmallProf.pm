@@ -2,12 +2,22 @@ package Apache::SmallProf;
 
 use strict;
 use vars qw($VERSION @ISA);
-use Apache::DB 0.04;
+use Apache::DB 0.06;
 @ISA = qw(DB);
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 $Apache::Registry::MarkLine = 0;
+
+BEGIN { 
+	use constant MP2 => eval { require mod_perl; $mod_perl::VERSION > 1.99 };
+	die "mod_perl is required to run this module: $@" if $@; 
+
+	if (MP2) { 
+		require Apache2; 
+		require APR::Pool; 
+	}
+}
 
 sub handler {
     my $r = shift;
@@ -24,13 +34,21 @@ sub handler {
 
     my $db = Apache::SmallProf->new(file => "$dir/$uri", dir => $dir);
     $db->begin;
-    $r->register_cleanup(sub { 
-	local $DB::profile = 0;
-	$db->end;
-	#shift->child_terminate;
-	0;
-    });
 
+	if (MP2) { 
+		$r->pool->cleanup_register(sub { 
+		local $DB::profile = 0;
+		$db->end;
+		0;
+		});
+	}
+	else { 
+		$r->register_cleanup(sub { 
+		local $DB::profile = 0;
+		$db->end;
+		0;
+		});
+	}
     0;
 }
 
@@ -249,3 +267,4 @@ Devel::SmallProf(3), Apache::DB(3), Apache::DProf(3)
 Devel::SmallProf - Ted Ashton
 Apache::SmallProf derived from Devel::SmallProf - Doug MacEachern
 
+Currently maintained by Frank Wiles <frank@wiles.org>

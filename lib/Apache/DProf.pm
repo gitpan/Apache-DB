@@ -6,16 +6,45 @@ use File::Path ();
 
 {
     no strict;
-    $VERSION = '0.03';
+    $VERSION = '0.04';
 }
 
-my $prof_path = Apache->server_root_relative($ENV{APACHE_DPROF_PATH} || 
-					     "logs/dprof");
+# Need to determine if we are in a mod_perl 1.x or 2.x environment
+# and load the appropriate modules
+BEGIN { 
+	use constant MP2 => eval { require mod_perl; $mod_perl::VERSION > 1.99 };
+	die "mod_perl is required to run this module: $@" if $@; 
+
+	if (MP2) { 
+		require Apache2; 
+		require Apache::RequestRec; 
+		require Apache::ServerUtil; 
+	}
+}
+
+
+# Adjust to handle mp1 and mp2 differently 
+my $prof_path; 
+if (MP2) { 
+    my $s = Apache->server;
+    $prof_path = $s->server_root_relative( $ENV{APACHE_DPROF_PATH} || 
+                                           "logs/dprof"); 
+}
+else {
+    $prof_path = Apache->server_root_relative($ENV{APACHE_DPROF_PATH} || 
+                                           "logs/dprof");
+}
 
 if($ENV{MOD_PERL}) {
     File::Path::rmtree($prof_path) if -d $prof_path and 
       $ENV{APACHE_DPROF_CLEANUP};
-    Apache->push_handlers(PerlChildInitHandler => \&handler);
+
+    if (MP2) { 
+        Apache->server->push_handlers(PerlChildInitHandler => \&handler); 
+    }
+    else { 
+        Apache->push_handlers(PerlChildInitHandler => \&handler);
+    }
 }
 
 sub handler {
@@ -29,7 +58,11 @@ sub handler {
 
     require Devel::DProf;
 
-    chdir $Apache::Server::CWD;
+	if (MP2) { 
+	}
+	else { 
+		chdir $Apache::Server::CWD;
+	}
 
     return 0;
 }
@@ -124,7 +157,9 @@ generated and ready for B<dprofpp>.
 
 =head1 AUTHOR
 
-Doug MacEachern
+Originally written by Doug MacEachern
+
+Currently maintained by Frank Wiles <frank@wiles.org>
 
 =head1 SEE ALSO
 

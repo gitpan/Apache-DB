@@ -2,6 +2,10 @@
 #include "perl.h"
 #include "XSUB.h"
 
+#ifdef WIN32
+#define SIGINT 2
+#endif
+
 static void my_init_debugger()
 {
     dTHR;
