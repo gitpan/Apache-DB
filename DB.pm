@@ -5,12 +5,12 @@ use strict;
 use DynaLoader ();
 
 BEGIN { 
-	use constant MP2 => eval { require mod_perl; $mod_perl::VERSION > 1.99 };
+	use constant MP2 => eval { require mod_perl2; $mod_perl::VERSION > 1.99 };
 	die "mod_perl is required to run this module: $@" if $@; 
 
-	if(MP2) { 
-		require Apache2;
-		require APR::Pool; 
+	if (MP2) { 
+		require APR::Pool;
+		require Apache2::RequestRec;
 	}
 
 }
@@ -18,7 +18,7 @@ BEGIN {
 {
     no strict;
     @ISA = qw(DynaLoader);
-    $VERSION = '0.09';
+    $VERSION = '0.10';
     __PACKAGE__->bootstrap($VERSION);
 }
 
@@ -37,7 +37,23 @@ sub handler {
 
     init();
 
-    require 'Apache/perl5db.pl';
+    {
+       local $@;
+       my $loaded_db;
+
+       if ($ENV{PERL5DB}) {
+           (my $directive = $ENV{PERL5DB}) 
+		   		=~ s/^\s*BEGIN\s*{\s*(.*)\s*}\z/$1/s;
+           $directive =~ s/^require\b/do/;
+           $loaded_db = eval($directive);
+       }
+
+       if (!$loaded_db) {
+           # Fallback
+           require 'Apache/perl5db.pl';
+       }
+    }
+
     $DB::single = 1;
 
 	if( MP2 ) { 
@@ -107,7 +123,6 @@ until request time, call this function from a PerlRequire'd file:
 If you are using mod_perl 2.0 you will need to use the following 
 as your db.pl: 
 
-  use Apache2; 
   use APR::Pool (); 
   use Apache::DB (); 
   Apache::DB->init(); 
@@ -124,6 +139,28 @@ I<Apache::DB::init> if needed.  Example configuration:
  </Location>
 
 =back
+
+=head1 SELinux
+
+Security-enhanced Linux (SELinux) is a mandatory access control system
+many linux distrobutions are implementing.  This new security scheme
+can assist you with protecting a server, but it doesn't come without
+its own set of issues.  Debugging applications running on a box with
+SELinux on it takes a couple of extra steps and unfortunately the
+instructions that follow have only been tested on RedHat/Fedora.
+
+1) You need to edit/create the file "local.te" and add the following:
+
+if (httpd_tty_comm) {
+    allow { httpd_t } admin_tty_type:chr_file { ioctl getattr }; }
+
+2) Reload your security policy.
+
+3) Run the command "setsebool httpd_tty_comm true".
+
+You should be aware as you debug applications on a system with SELinux
+your code may very well be correct, but the system policy is denying your
+actions.  
 
 =head1 CAVEATS
 
@@ -149,5 +186,7 @@ Originally written by Doug MacEachern
 
 Currently maintained by Frank Wiles <frank@wiles.org>
 
+=head1 LICENSE 
 
+This module is distributed under the same terms as Perl itself. 
 

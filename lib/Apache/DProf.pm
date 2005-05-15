@@ -6,7 +6,7 @@ use File::Path ();
 
 {
     no strict;
-    $VERSION = '0.04';
+    $VERSION = '0.05';
 }
 
 # Need to determine if we are in a mod_perl 1.x or 2.x environment
@@ -16,9 +16,8 @@ BEGIN {
 	die "mod_perl is required to run this module: $@" if $@; 
 
 	if (MP2) { 
-		require Apache2; 
-		require Apache::RequestRec; 
-		require Apache::ServerUtil; 
+		require Apache2::RequestRec; 
+		require Apache2::ServerUtil; 
 	}
 }
 
@@ -26,9 +25,16 @@ BEGIN {
 # Adjust to handle mp1 and mp2 differently 
 my $prof_path; 
 if (MP2) { 
-    my $s = Apache->server;
-    $prof_path = $s->server_root_relative( $ENV{APACHE_DPROF_PATH} || 
-                                           "logs/dprof"); 
+	my $s = Apache2::ServerUtil::server_root(); 
+
+	if( $ENV{APACHE_DPROF_PATH} ) { 
+		$prof_path = "$s/" . $ENV{APACHE_DPROF_PATH};
+	}
+	else { 
+		$prof_path = "$s/" . "logs/dprof"; 
+	}
+
+	warn("PROF_PATH=$prof_path");
 }
 else {
     $prof_path = Apache->server_root_relative($ENV{APACHE_DPROF_PATH} || 
@@ -40,7 +46,9 @@ if($ENV{MOD_PERL}) {
       $ENV{APACHE_DPROF_CLEANUP};
 
     if (MP2) { 
-        Apache->server->push_handlers(PerlChildInitHandler => \&handler); 
+		Apache2::ServerUtil->server->push_handlers(	
+				PerlChildInitHandler => \&handler
+		) or die "Cannot push handler: $!";  
     }
     else { 
         Apache->push_handlers(PerlChildInitHandler => \&handler);
@@ -52,7 +60,9 @@ sub handler {
 
     my $dir = "$prof_path/$$";
     File::Path::mkpath($dir);
-    chdir $dir;
+    chdir $dir or die "Cannot move into '$dir': $!"; 
+
+	warn("Entering handler...."); 
 
     Apache::DB->init;
 
@@ -153,13 +163,20 @@ debugger and pull in Devel::DProf who will then install it's hooks
 into the debugger and start it's profile timer.  The C<END> subroutine
 installed by Devel::DProf will be run when the child server is
 shutdown and the I<$ServerRoot/dprof/$$/tmon.out> file will be
-generated and ready for B<dprofpp>.
+generated and ready for B<dprofpp>. 
+
+B<NOTE:> I<$ServerRoot/dprof/> will need to be writable by the user 
+Apache is running as (i.e. nobody, apache, etc.). 
 
 =head1 AUTHOR
 
 Originally written by Doug MacEachern
 
 Currently maintained by Frank Wiles <frank@wiles.org>
+
+=head1 LICENSE 
+
+This module is distributed under the same terms as Perl itself. 
 
 =head1 SEE ALSO
 

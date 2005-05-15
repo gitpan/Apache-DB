@@ -1,3 +1,17 @@
+=item 0.10 - May 15, 2005 
+
+Ported all modules to mod_perl 2.0.0-RC6 including API changes. 
+
+Added documentation regarding necessary steps when debugging with SELinux
+thanks to Dave Hageman <dhageman@dracken.com>.
+
+Added missing license information. 
+
+Added fix for graphical debuggers thanks to 
+Eric Promislow <ericp@ActiveState.com>.
+
+General documentation cleanup.
+
 =item 0.09 - May 11, 2004
 
 Fix required module problems in Apache::SmallProf, thanks to 

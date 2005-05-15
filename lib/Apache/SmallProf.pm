@@ -5,7 +5,7 @@ use vars qw($VERSION @ISA);
 use Apache::DB 0.06;
 @ISA = qw(DB);
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 $Apache::Registry::MarkLine = 0;
 
@@ -14,16 +14,18 @@ BEGIN {
 	die "mod_perl is required to run this module: $@" if $@; 
 
 	if (MP2) { 
-		require Apache2; 
-		require Apache::RequestUtil;
-		require Apache::RequestRec;
+		require APR::Pool;
+		require Apache2::RequestUtil;
+		require Apache2::RequestRec;
+		require Apache2::ServerUtil;
 	}
 }
 
 sub handler {
     my $r = shift;
+    my $dir = Apache2::ServerUtil::server_root(); 
     my $sdir = $r->dir_config('SmallProfDir') || 'logs/smallprof';
-    my $dir = $r->server_root_relative($sdir);
+	$dir = "$dir/$sdir"; 
     mkdir $dir, 0755 unless -d $dir;
 
     unless (-d $dir) {
@@ -258,6 +260,10 @@ e.g.:
          5 0.002002       259:    return $self->all_parameters unless @p;
          5 0.000867       258:    my($self,@p) = self_or_default(@_);
          ...
+
+=head1 LICENSE 
+
+This module is distributed under the same terms as Perl itself. 
 
 =head1 SEE ALSO
 
