@@ -2,15 +2,17 @@ package Apache::SmallProf;
 
 use strict;
 use vars qw($VERSION @ISA);
-use Apache::DB 0.06;
+use Apache::DB 0.11;
 @ISA = qw(DB);
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 $Apache::Registry::MarkLine = 0;
 
 BEGIN { 
-	use constant MP2 => eval { require mod_perl; $mod_perl::VERSION > 1.99 };
+	use constant MP2 => eval { 
+        exists $ENV{MOD_PERL_API_VERSION} and $ENV{MOD_PERL_API_VERSION} >= 2
+    };
 	die "mod_perl is required to run this module: $@" if $@; 
 
 	if (MP2) { 
@@ -248,7 +250,7 @@ Apache::SmallProf - Hook Devel::SmallProf into mod_perl
 
 Devel::SmallProf is a line-by-line code profiler.  Apache::SmallProf provides
 this profiler in the mod_perl environment.  Profiles are written to
-I<ServerRoot/logs/smallprof> and unlike I<Devel::SmallProf> the profile is
+I<$ServerRoot/logs/smallprof> and unlike I<Devel::SmallProf> the profile is
 split into several files based on package name.
 
 The I<Devel::SmallProf> documentation explains how to analyize the profiles,

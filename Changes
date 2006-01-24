@@ -1,3 +1,9 @@
+=item 0.11 - January 24, 2006 
+
+Refactored how we were detecting mod_perl 1.x vs mod_perl 2.x
+
+Cleaned up a small documentation bug in Apache::SmallProf
+
 =item 0.10 - May 15, 2005 
 
 Ported all modules to mod_perl 2.0.0-RC6 including API changes. 

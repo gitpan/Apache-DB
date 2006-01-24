@@ -5,7 +5,9 @@ use strict;
 use DynaLoader ();
 
 BEGIN { 
-	use constant MP2 => eval { require mod_perl2; $mod_perl::VERSION > 1.99 };
+	use constant MP2 => eval { 
+        exists $ENV{MOD_PERL_API_VERSION} and $ENV{MOD_PERL_API_VERSION} >= 2
+    };
 	die "mod_perl is required to run this module: $@" if $@; 
 
 	if (MP2) { 
@@ -18,7 +20,7 @@ BEGIN {
 {
     no strict;
     @ISA = qw(DynaLoader);
-    $VERSION = '0.10';
+    $VERSION = '0.11';
     __PACKAGE__->bootstrap($VERSION);
 }
 

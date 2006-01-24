@@ -6,13 +6,15 @@ use File::Path ();
 
 {
     no strict;
-    $VERSION = '0.05';
+    $VERSION = '0.06';
 }
 
 # Need to determine if we are in a mod_perl 1.x or 2.x environment
 # and load the appropriate modules
 BEGIN { 
-	use constant MP2 => eval { require mod_perl; $mod_perl::VERSION > 1.99 };
+	use constant MP2 => eval { 
+        exists $ENV{MOD_PERL_API_VERSION} and $ENV{MOD_PERL_API_VERSION} >= 2
+    };
 	die "mod_perl is required to run this module: $@" if $@; 
 
 	if (MP2) { 
@@ -165,7 +167,7 @@ installed by Devel::DProf will be run when the child server is
 shutdown and the I<$ServerRoot/dprof/$$/tmon.out> file will be
 generated and ready for B<dprofpp>. 
 
-B<NOTE:> I<$ServerRoot/dprof/> will need to be writable by the user 
+B<NOTE:> I<$ServerRoot/logs/dprof/> will need to be writable by the user 
 Apache is running as (i.e. nobody, apache, etc.). 
 
 =head1 AUTHOR
