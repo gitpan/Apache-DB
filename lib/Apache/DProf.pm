@@ -6,7 +6,7 @@ use File::Path ();
 
 {
     no strict;
-    $VERSION = '0.06';
+    $VERSION = '0.07';
 }
 
 # Need to determine if we are in a mod_perl 1.x or 2.x environment
@@ -36,11 +36,15 @@ if (MP2) {
 		$prof_path = "$s/" . "logs/dprof"; 
 	}
 
-	warn("PROF_PATH=$prof_path");
 }
 else {
-    $prof_path = Apache->server_root_relative($ENV{APACHE_DPROF_PATH} || 
-                                           "logs/dprof");
+    if ($ENV{APACHE_DPROF_PATH_ABSOLUTE}) {
+        $prof_path = $ENV{APACHE_DPROF_PATH_ABSOLUTE};
+    }
+    else {
+        $prof_path = Apache->server_root_relative($ENV{APACHE_DPROF_PATH} ||
+                                                "logs/dprof");
+    }
 }
 
 if($ENV{MOD_PERL}) {
@@ -168,7 +172,9 @@ shutdown and the I<$ServerRoot/dprof/$$/tmon.out> file will be
 generated and ready for B<dprofpp>. 
 
 B<NOTE:> I<$ServerRoot/logs/dprof/> will need to be writable by the user 
-Apache is running as (i.e. nobody, apache, etc.). 
+Apache is running as (i.e. nobody, apache, etc.).  If you can not write
+to $ServerRoto as this user, set $ENV{APACHE_DPROF_PATH_ABSOLUTE} to
+an absolute path of a directory this user can.
 
 =head1 AUTHOR
 

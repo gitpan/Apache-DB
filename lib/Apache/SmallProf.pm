@@ -2,10 +2,10 @@ package Apache::SmallProf;
 
 use strict;
 use vars qw($VERSION @ISA);
-use Apache::DB 0.11;
+use Apache::DB 0.12;
 @ISA = qw(DB);
 
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 $Apache::Registry::MarkLine = 0;
 
@@ -25,7 +25,15 @@ BEGIN {
 
 sub handler {
     my $r = shift;
-    my $dir = Apache2::ServerUtil::server_root(); 
+    my $dir;
+    
+    if(MP2) { 
+        $dir = Apache2::ServerUtil::server_root(); 
+    }
+    else { 
+        $dir = $r->server_root_relative; 
+    }
+
     my $sdir = $r->dir_config('SmallProfDir') || 'logs/smallprof';
 	$dir = "$dir/$sdir"; 
     mkdir $dir, 0755 unless -d $dir;

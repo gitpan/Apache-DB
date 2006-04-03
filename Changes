@@ -1,3 +1,10 @@
+=item 0.12 - April 3, 2006 
+
+Fixed mod_perl 1.x bug in Apache::SmallProf that was using mp2 code mistakenly.
+
+Add $ENV{APACHE_DPROF_PATH_ABSOLUTE} override for those unlucky soles 
+that can NOT write to ServerRoot.  [Philip M. Gollucci <pgollucci@p6m7g8.com>]
+
 =item 0.11 - January 24, 2006 
 
 Refactored how we were detecting mod_perl 1.x vs mod_perl 2.x
