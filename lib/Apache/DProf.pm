@@ -6,7 +6,7 @@ use File::Path ();
 
 {
     no strict;
-    $VERSION = '0.07';
+    $VERSION = '0.08';
 }
 
 # Need to determine if we are in a mod_perl 1.x or 2.x environment
@@ -65,6 +65,10 @@ sub handler {
     my $r = shift;
 
     my $dir = "$prof_path/$$";
+
+    # Untained $dir 
+    $dir =~ m/^(.*?)$/; $dir = $1; 
+
     File::Path::mkpath($dir);
     chdir $dir or die "Cannot move into '$dir': $!"; 
 

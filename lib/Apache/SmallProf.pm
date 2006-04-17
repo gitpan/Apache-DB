@@ -2,10 +2,10 @@ package Apache::SmallProf;
 
 use strict;
 use vars qw($VERSION @ISA);
-use Apache::DB 0.12;
+use Apache::DB 0.13;
 @ISA = qw(DB);
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 $Apache::Registry::MarkLine = 0;
 
@@ -36,6 +36,10 @@ sub handler {
 
     my $sdir = $r->dir_config('SmallProfDir') || 'logs/smallprof';
 	$dir = "$dir/$sdir"; 
+
+    # Untaint $dir 
+    $dir =~ m/^(.*?)$/; $dir = $1; 
+
     mkdir $dir, 0755 unless -d $dir;
 
     unless (-d $dir) {
