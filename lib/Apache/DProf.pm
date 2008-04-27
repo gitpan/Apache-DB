@@ -177,7 +177,7 @@ generated and ready for B<dprofpp>.
 
 B<NOTE:> I<$ServerRoot/logs/dprof/> will need to be writable by the user 
 Apache is running as (i.e. nobody, apache, etc.).  If you can not write
-to $ServerRoto as this user, set $ENV{APACHE_DPROF_PATH_ABSOLUTE} to
+to $ServerRoot as this user, set $ENV{APACHE_DPROF_PATH_ABSOLUTE} to
 an absolute path of a directory this user can.
 
 =head1 AUTHOR

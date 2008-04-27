@@ -56,4 +56,8 @@ void
 ApacheSIGINT(...)
 
     CODE:
+#if ((PERL_REVISION == 5) && (PERL_VERSION >= 10))
+    if (ApacheSIGINT) (*ApacheSIGINT)(SIGINT, NULL, NULL); 
+#else 
     if (ApacheSIGINT) (*ApacheSIGINT)(SIGINT);
+#endif 

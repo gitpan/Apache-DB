@@ -27,7 +27,7 @@ sub handler {
     my $r = shift;
     my $dir;
     
-    if(MP2) { 
+    if (MP2) { 
         $dir = Apache2::ServerUtil::server_root(); 
     }
     else { 
@@ -42,9 +42,8 @@ sub handler {
 
     mkdir $dir, 0755 unless -d $dir;
 
-    unless (-d $dir) {
-	die "$dir does not exist: $!";
-    }
+    # Die if we can't make the directory 
+	die "$dir does not exist: $!" if !-d $dir; 
 
     (my $uri = $r->uri) =~ s,/,::,g;
     $uri =~ s/^:+//;
